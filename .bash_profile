@@ -17,6 +17,42 @@ parse_git_branch() {
    git name-rev HEAD 2> /dev/null | sed 's#HEAD\ \(.*\)# (\1)#'
 }
 
+test_loop_function() {
+  re='^[0-9]+$'
+  if [[ $1 =~ $re  ]]; then
+    number=$1
+    shift;
+    task=$1
+    shift;
+    process=$@
+    for((i = 1; i <= $number; i++)); do
+      echo "$YELLOW--------------------------------------------------------- ON NUMBER $i OF $number$BLACK"
+      if [[ $task == 'rake' ]]; then
+        bundle exec rake $process
+      elif [[ $task == 'cuke'  ]]; then
+        bundle exec cucumber $process
+      else
+        $task $process
+      fi  
+    done
+  else
+    default=5
+    task=$1
+    shift;
+    process=$@
+    for ((i = 1; i <= $default; i++)); do
+      echo "$YELLOW--------------------------------------------------------- ON NUMBER $i OF $default$BLACK" 
+      if [[ $task == 'rake' ]]; then
+        bundle exec rake $process
+      elif [[ $task == 'cuke'  ]]; then
+        bundle exec cucumber $process
+      else
+        $task $process
+      fi  
+    done
+  fi
+}
+
 # BLACK="\[\033[0;38m\]"
 # RED="\[\033[0;31m\]"
 # RED_BOLD="\[\033[01;31m\]"
@@ -40,6 +76,9 @@ CYAN=$(tput setaf 6)
 export GREP_COLORS='0;32'   # green -- outside shell commands, e.g. abort message when double opening file in vim
 export GREP_COLOR='0;36'    # cyan -- color printed to console output
 
+alias bec='bundle exec cucumber'
+alias ber='bundle exec rake'
+alias loop='test_loop_function'
 alias ..='cd ..'
 alias ...='cd ../../../'
 alias ..cd='cd ..'
@@ -73,3 +112,9 @@ export PS1="\[$YELLOW\]\u\[$WHITE\]@\[$CYAN\]\H\[$WHITE\]|\[$GREEN_BOLD\]\W\[$RE
 
 #load rbenv (sort of)
 eval "$(rbenv init -)"
+
+#appium
+export PATH=${PATH}:~/android-sdk-macosx/tools
+export PATH=${PATH}:~/android-sdk-macosx/platform-tools/
+export ANDROID_HOME=~/android-sdk-macosx/
+export JAVA_HOME='/System/Library/Frameworks/JavaVM.framework/Versions/CurrentJDK/Home'
